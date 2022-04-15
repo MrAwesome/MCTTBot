@@ -1,0 +1,16 @@
+{
+  "main": "src/index.ts",
+  "dependencies": {
+    "@types/node": "^17.0.24",
+    "@xboxreplay/xboxlive-auth": "^4.0.0",
+    "minecraft-protocol": "^1.32.1",
+    "mineflayer": "^4.2.0",
+    "mineflayer-pathfinder": "^2.0.0",
+    "node-fetch": "^3.2.3",
+    "prismarine-auth": "^1.5.1",
+    "prismarine-realms": "^1.1.0",
+    "ts-node": "^10.7.0",
+    "ttapi": "^4.0.3",
+    "typescript": "^4.6.3"
+  }
+}
