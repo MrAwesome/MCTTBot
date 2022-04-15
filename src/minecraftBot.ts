@@ -53,10 +53,9 @@ export async function setupMinecraftBot(
         const defaultMove = new Movements(mcbot, mcData);
 
         mcbot.on('chat', function (username, message) {
-
             if (username === mcbot.username) return;
-
             const target = mcbot.players[username] ? mcbot.players[username].entity : null;
+
             if (message === '.come') {
                 if (!target) {
                     mcbot.chat('I don\'t see you !');
@@ -66,15 +65,11 @@ export async function setupMinecraftBot(
 
                 mcbot.pathfinder.setMovements(defaultMove);
                 mcbot.pathfinder.setGoal(new goals.GoalNear(p.x, p.y, p.z, 1));
-            }
-
-            if (message === '.sleep') {
+            } else if (message === '.sleep') {
                 goToSleep();
-            }
-
-            if (message.startsWith('.addsong ')) {
+            } else if (message.startsWith('.add ')) {
                 ttbot.playlistSwitch("BOT");
-                const targ = message.slice(6);
+                const targ = message.slice(5);
                 console.log(targ);
                 if (targ) {
                     ttbot.searchSong(targ, (searchRes: any) => {
@@ -87,32 +82,23 @@ export async function setupMinecraftBot(
                         // TODO: search
                     });
                 }
-            }
-
-            if (message === '.play') {
-                ttbot.playlistSwitch("BOT");
-                ttbot.addDj();
-            }
-
-            if (message === '.next' || message === '.skip') {
-                ttbot.playlistSwitch("BOT");
-                ttbot.skip();
-            }
-
-            if (message === '.stop') {
+            } else if (message === '.play') {
+                ttbot.playlistSwitch("BOT", () => ttbot.addDj(console.log));
+            } else if (message === '.next' || message === '.skip') {
+                ttbot.playlistSwitch("BOT", () => ttbot.skip());
+            } else if (message === '.stop') {
                 ttbot.remDj();
-            }
-
-            if (message === '.playlist') {
+            } else if (message === '.playlist') {
                 ttbot.playlistAll("BOT", console.log)
+            } else if (message === '.clear') {
+                ttbot.playlistDelete("BOT", () =>
+                    ttbot.playlistCreate("BOT", () =>
+                        ttbot.playlistSwitch("BOT")
+                    )
+                );
+            } else {
+                ttbot.speak(`[MC][${username}] ${message}`)
             }
-
-            if (message === '.clear') {
-                ttbot.playlistDelete("BOT");
-                ttbot.playlistCreate("BOT");
-                ttbot.playlistSwitch("BOT");
-            }
-            
 
         })
     })

@@ -32,15 +32,10 @@ function sleep(ms) {
 (async function () {
     const { Authflow } = await Promise.resolve().then(() => __importStar(require('prismarine-auth')));
     const { RealmAPI } = await Promise.resolve().then(() => __importStar(require('prismarine-realms')));
-    const authflow = new Authflow("Gleesus", 
-    //undefined,
-    ".cache/", {
+    const authflow = new Authflow("Gleesus", ".cache/", {
         // For some reason, this needs to be false. 
         authTitle: false,
     });
-    //const x = authflow.getMinecraftJavaToken();
-    //const x = await authflow.getMsaToken();
-    //console.log(x);
     const api = RealmAPI.from(authflow, 'java');
     console.log(api);
     const realms = await api.getRealms();

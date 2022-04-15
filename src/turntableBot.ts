@@ -8,13 +8,6 @@ const readFile = promisify(fs.readFile);
 
 const TTCONFIG_FILENAME = '.ttconfig';
 
-//bot.on('speak', function (data) {
-  //// Respond to "/hello" command
-  //if (data.text.match(/^\/hello$/)) {
-    //bot.speak('Hey! How are you @'+data.name+' ?');
-  //}
-//});
-
 export async function genTurntableBot(): Promise<any> {
     const ttconfigContents = (await readFile(TTCONFIG_FILENAME)).toString();
     const [AUTH, USERID, ROOMID] = ttconfigContents.split("\n").slice(0, 3);
@@ -29,8 +22,8 @@ export async function setupTurntableBot(
     const {mcbot} = otherBots;
     //bot.debug = true;
     ttbot.on('ready',        function (_data: any) {
-        ttbot.speak("Loaded!");
-        mcbot.chat("Turntable room ready!");
+        //ttbot.speak("Loaded!");
+        mcbot.chat(`Turntable room ready! https://turntable.fm/${ttbot.roomId}`);
     //bot.roomRegister(ROOMID, function() {
         //bot.setAsBot();
     //});
@@ -47,4 +40,19 @@ export async function setupTurntableBot(
     //    }
     //  });
     });
+    ttbot.on('speak', function (data: any) {
+        const {name, text, userid} = data;
+
+
+        ttbot.userInfo((userInfo: any) => {
+            if (userid !== userInfo.userid) {
+                mcbot.chat(`[TT][${name}] ${text}`);
+            }
+        });
+    // Respond to "/hello" command
+    //if (data.text.match(/^\/hello$/)) {
+    //  bot.speak('Hey! How are you @'+data.name+' ?');
+    //}
+    });
+
 }

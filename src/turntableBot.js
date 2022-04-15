@@ -10,12 +10,6 @@ const fs_1 = __importDefault(require("fs"));
 const util_1 = require("util");
 const readFile = (0, util_1.promisify)(fs_1.default.readFile);
 const TTCONFIG_FILENAME = '.ttconfig';
-//bot.on('speak', function (data) {
-//// Respond to "/hello" command
-//if (data.text.match(/^\/hello$/)) {
-//bot.speak('Hey! How are you @'+data.name+' ?');
-//}
-//});
 async function genTurntableBot() {
     const ttconfigContents = (await readFile(TTCONFIG_FILENAME)).toString();
     const [AUTH, USERID, ROOMID] = ttconfigContents.split("\n").slice(0, 3);
@@ -27,8 +21,8 @@ async function setupTurntableBot(ttbot, otherBots) {
     const { mcbot } = otherBots;
     //bot.debug = true;
     ttbot.on('ready', function (_data) {
-        ttbot.speak("Loaded!");
-        mcbot.chat("Turntable room ready!");
+        //ttbot.speak("Loaded!");
+        mcbot.chat(`Turntable room ready! https://turntable.fm/${ttbot.roomId}`);
         //bot.roomRegister(ROOMID, function() {
         //bot.setAsBot();
         //});
@@ -43,6 +37,18 @@ async function setupTurntableBot(ttbot, otherBots) {
         //      console.log(doc);
         //    }
         //  });
+    });
+    ttbot.on('speak', function (data) {
+        const { name, text, userid } = data;
+        ttbot.userInfo((userInfo) => {
+            if (userid !== userInfo.userid) {
+                mcbot.chat(`[TT][${name}] ${text}`);
+            }
+        });
+        // Respond to "/hello" command
+        //if (data.text.match(/^\/hello$/)) {
+        //  bot.speak('Hey! How are you @'+data.name+' ?');
+        //}
     });
 }
 exports.setupTurntableBot = setupTurntableBot;

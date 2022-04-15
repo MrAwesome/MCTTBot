@@ -60,12 +60,12 @@ async function setupMinecraftBot(mcbot, otherBots) {
                 mcbot.pathfinder.setMovements(defaultMove);
                 mcbot.pathfinder.setGoal(new mineflayer_pathfinder_1.goals.GoalNear(p.x, p.y, p.z, 1));
             }
-            if (message === '.sleep') {
+            else if (message === '.sleep') {
                 goToSleep();
             }
-            if (message.startsWith('.addsong ')) {
+            else if (message.startsWith('.add ')) {
                 ttbot.playlistSwitch("BOT");
-                const targ = message.slice(6);
+                const targ = message.slice(5);
                 console.log(targ);
                 if (targ) {
                     ttbot.searchSong(targ, (searchRes) => {
@@ -79,24 +79,23 @@ async function setupMinecraftBot(mcbot, otherBots) {
                     });
                 }
             }
-            if (message === '.play') {
-                ttbot.playlistSwitch("BOT");
-                ttbot.addDj();
+            else if (message === '.play') {
+                ttbot.playlistSwitch("BOT", () => ttbot.addDj(console.log));
             }
-            if (message === '.next' || message === '.skip') {
-                ttbot.playlistSwitch("BOT");
-                ttbot.skip();
+            else if (message === '.next' || message === '.skip') {
+                ttbot.playlistSwitch("BOT", () => ttbot.skip());
             }
-            if (message === '.stop') {
+            else if (message === '.stop') {
                 ttbot.remDj();
             }
-            if (message === '.playlist') {
+            else if (message === '.playlist') {
                 ttbot.playlistAll("BOT", console.log);
             }
-            if (message === '.clear') {
-                ttbot.playlistDelete("BOT");
-                ttbot.playlistCreate("BOT");
-                ttbot.playlistSwitch("BOT");
+            else if (message === '.clear') {
+                ttbot.playlistDelete("BOT", () => ttbot.playlistCreate("BOT", () => ttbot.playlistSwitch("BOT")));
+            }
+            else {
+                ttbot.speak(`[MC][${username}] ${message}`);
             }
         });
     });
