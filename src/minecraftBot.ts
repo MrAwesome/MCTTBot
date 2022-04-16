@@ -2,6 +2,7 @@ import {BotOptions} from 'mineflayer';
 import {pathfinder, Movements, goals} from 'mineflayer-pathfinder';
 import mineflayer from 'mineflayer';
 import MinecraftData from 'minecraft-data';
+import Turntable from '@mrawesome/turntable-api';
 
 export async function genMinecraftBot() {
     const options: BotOptions = {
@@ -16,7 +17,7 @@ export async function genMinecraftBot() {
 
 export async function setupMinecraftBot(
     mcbot: mineflayer.Bot,
-    otherBots: {ttbot: any},
+    otherBots: {ttbot: Turntable},
 ): Promise<void> {
     const {ttbot} = otherBots;
     mcbot.on('kicked', x => console.log("kicked: ", x));
@@ -43,6 +44,8 @@ export async function setupMinecraftBot(
         }
     }
 
+    const currentPlaylist = "BOT";
+
     mcbot.once('spawn', async () => {
         const playerList = Object.keys(mcbot.players).join(", ")
         console.log("Players online: ", playerList);
@@ -52,7 +55,7 @@ export async function setupMinecraftBot(
         // @ts-ignore
         const defaultMove = new Movements(mcbot, mcData);
 
-        mcbot.on('chat', function (username, message) {
+        mcbot.on('chat', async (username, message) => {
             if (username === mcbot.username) return;
             const target = mcbot.players[username] ? mcbot.players[username].entity : null;
 
@@ -68,40 +71,40 @@ export async function setupMinecraftBot(
             } else if (message === '.sleep') {
                 goToSleep();
             } else if (message.startsWith('.add ')) {
-                ttbot.playlistSwitch("BOT");
                 const targ = message.slice(5);
-                console.log(targ);
                 if (targ) {
-                    ttbot.searchSong(targ, (searchRes: any) => {
-                        const {docs} = searchRes;
-                        const song = docs[0];
-                        console.log(song);
-                        console.log(song.metadata);
-                        ttbot.playlistAdd("BOT", song._id);
-                        // TODO: print out
-                        // TODO: search
-                    });
+                    const results = await ttbot.search(targ);
+                    const song = results[0];
+                    ttbot.playlistAdd(song._id, "BOT");
+                    // TODO: print out
+                    // TODO: search
                 }
             } else if (message === '.play') {
-                ttbot.playlistSwitch("BOT", () => ttbot.addDj(console.log));
+                ttbot.addDJ();
             } else if (message === '.next' || message === '.skip') {
-                ttbot.playlistSwitch("BOT", () => ttbot.skip());
+                ttbot.skipSong();
             } else if (message === '.stop') {
-                ttbot.remDj();
-            } else if (message === '.playlist') {
-                ttbot.playlistAll("BOT", console.log)
-            } else if (message === '.clear') {
-                ttbot.playlistDelete("BOT", () =>
-                    ttbot.playlistCreate("BOT", () =>
-                        ttbot.playlistSwitch("BOT")
-                    )
-                );
+                ttbot.removeDJ();
+            } else if (message === '.del') {
+                ttbot.playlistRemove();
+//            } else if (message === '.playlist') {
+//                ttbot.playlistAll("BOT", console.log)
+//            } else if (message === '.clear') {
+//                ttbot.playlistDelete("BOT", () =>
+//                    ttbot.playlistCreate("BOT", () =>
+//                        ttbot.playlistSwitch("BOT")
+//                    )
+//                );
             } else {
-                ttbot.speak(`[MC][${username}] ${message}`)
+                ttbot.speak(`[MC][${username}] ${message}`);
             }
 
-        })
-    })
+        });
+    });
 
-    console.log("Bot loaded...");
+    console.log("Minecraft bot loaded...");
 }
+
+  //search(query: string) {
+    //return this.conn.sendMessage({ api: 'file.search', query })
+  //}

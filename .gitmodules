@@ -1,0 +1,3 @@
+[submodule "src/turntable-api"]
+	path = src/turntable-api
+	url = https://github.com/MrAwesome/turntable-api/
