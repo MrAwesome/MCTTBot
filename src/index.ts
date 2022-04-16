@@ -1,5 +1,5 @@
 import {genTurntableBot, setupTurntableBot} from "./turntableBot";
-import {genMinecraftBot,setupMinecraftBot} from "./minecraftBot";
+import {genMinecraftBot, setupMinecraftBot} from "./minecraftBot";
 
 (async function () {
     const mcbot = await genMinecraftBot();

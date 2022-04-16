@@ -2,7 +2,7 @@ import {BotOptions} from 'mineflayer';
 import {pathfinder, Movements, goals} from 'mineflayer-pathfinder';
 import mineflayer from 'mineflayer';
 import MinecraftData from 'minecraft-data';
-import Turntable from '@mrawesome/turntable-api';
+import type Turntable from './turntable-api';
 
 export async function genMinecraftBot() {
     const options: BotOptions = {
@@ -75,7 +75,7 @@ export async function setupMinecraftBot(
                 if (targ) {
                     const results = await ttbot.search(targ);
                     const song = results[0];
-                    ttbot.playlistAdd(song._id, "BOT");
+                    ttbot.playlistAdd(song._id, currentPlaylist);
                     // TODO: print out
                     // TODO: search
                 }

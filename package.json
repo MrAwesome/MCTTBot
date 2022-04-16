@@ -1,7 +1,6 @@
 {
   "main": "src/index.ts",
   "dependencies": {
-    "@mrawesome/turntable-api": "^1.0.0",
     "@types/node": "^17.0.24",
     "@xboxreplay/xboxlive-auth": "^4.0.0",
     "minecraft-protocol": "^1.32.1",
