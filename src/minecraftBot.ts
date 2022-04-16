@@ -71,11 +71,9 @@ export async function setupMinecraftBot(
             } else if (message === '.sleep') {
                 goToSleep();
             } else if (message.startsWith('.add ')) {
-                const targ = message.slice(5);
-                if (targ) {
-                    const results = await ttbot.search(targ);
-                    const song = results[0];
-                    ttbot.playlistAdd(song._id, currentPlaylist);
+                const query = message.slice(5);
+                if (query) {
+                    ttbot.quickAddSong(query, currentPlaylist);
                     // TODO: print out
                     // TODO: search
                 }
