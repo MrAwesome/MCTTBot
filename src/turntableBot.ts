@@ -21,6 +21,7 @@ export async function genTurntableBot(): Promise<Turntable> {
 export async function setupTurntableBot(
     ttbot: Turntable,
     otherBots: {mcbot: mineflayer.Bot},
+    globalOpts: {mirror: boolean},
 ): Promise<void> {
     const {mcbot} = otherBots;
 
@@ -30,9 +31,18 @@ export async function setupTurntableBot(
     ttbot.on('speak', (data) => {
         // NOTE: these should be consistent between id and Id
         const {name, text, userid} = data;
+        if (userid === ttbot.conn.userid) return;
 
-        if (userid !== ttbot.conn.userid) {
+
+        if (text === '.mirror') {
+            globalOpts.mirror = true;
+        } else if (text === '.nomirror') {
+            globalOpts.mirror = false;
+
+        } else {
             mcbot.chat(`[TT][${name}] ${text}`);
         }
     });
+
+    console.log("Turntable bot loaded!");
 }

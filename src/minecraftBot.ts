@@ -18,6 +18,7 @@ export async function genMinecraftBot() {
 export async function setupMinecraftBot(
     mcbot: mineflayer.Bot,
     otherBots: {ttbot: Turntable},
+    globalOpts: {mirror: boolean},
 ): Promise<void> {
     const {ttbot} = otherBots;
     mcbot.on('kicked', x => console.log("kicked: ", x));
@@ -68,6 +69,10 @@ export async function setupMinecraftBot(
 
                 mcbot.pathfinder.setMovements(defaultMove);
                 mcbot.pathfinder.setGoal(new goals.GoalNear(p.x, p.y, p.z, 1));
+            } else if (message === '.mirror') {
+                globalOpts.mirror = true;
+            } else if (message === '.nomirror') {
+                globalOpts.mirror = false;
             } else if (message === '.sleep') {
                 goToSleep();
             } else if (message.startsWith('.add ')) {
@@ -85,16 +90,20 @@ export async function setupMinecraftBot(
                 ttbot.removeDJ();
             } else if (message === '.del') {
                 ttbot.playlistRemove();
-//            } else if (message === '.playlist') {
-//                ttbot.playlistAll("BOT", console.log)
-//            } else if (message === '.clear') {
-//                ttbot.playlistDelete("BOT", () =>
-//                    ttbot.playlistCreate("BOT", () =>
-//                        ttbot.playlistSwitch("BOT")
-//                    )
-//                );
+            } else if (message === '.playlist') {
+                ttbot.playlistAll(currentPlaylist).then((playlistInfo) => {
+                    console.log(playlistInfo);
+                });
+                //            } else if (message === '.clear') {
+                //                ttbot.playlistDelete("BOT", () =>
+                //                    ttbot.playlistCreate("BOT", () =>
+                //                        ttbot.playlistSwitch("BOT")
+                //                    )
+                //                );
             } else {
-                ttbot.speak(`[MC][${username}] ${message}`);
+                if (globalOpts.mirror) {
+                    ttbot.speak(`[MC][${username}] ${message}`);
+                }
             }
 
         });
