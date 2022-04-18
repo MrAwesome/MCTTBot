@@ -5,7 +5,7 @@ import {genMinecraftBot, setupMinecraftBot} from "./minecraftBot";
     const mcbot = await genMinecraftBot();
     const ttbot = await genTurntableBot();
 
-    const globalOpts = {mirror: true};
+    const globalOpts = {mirror: true, currentPlaylist: "BOT"};
 
     setupMinecraftBot(mcbot, {ttbot}, globalOpts);
     setupTurntableBot(ttbot, {mcbot}, globalOpts);

@@ -5,6 +5,7 @@ import Turntable from "./turntable-api";
 
 import fs from 'fs';
 import {promisify} from 'util';
+import {GlobalOpts} from './types';
 const readFile = promisify(fs.readFile);
 
 const TTCONFIG_FILENAME = '.ttconfig';
@@ -21,13 +22,16 @@ export async function genTurntableBot(): Promise<Turntable> {
 export async function setupTurntableBot(
     ttbot: Turntable,
     otherBots: {mcbot: mineflayer.Bot},
-    globalOpts: {mirror: boolean},
+    globalOpts: GlobalOpts,
 ): Promise<void> {
     const {mcbot} = otherBots;
 
     await ttbot.authenticate();
 
-    mcbot.chat(`Turntable room ready! https://turntable.fm/${ttbot.roomId}`);
+    const turntableRoomLink = `https://turntable.fm/${ttbot.roomId}`;
+    globalOpts.turntableRoomLink = turntableRoomLink;
+    mcbot.chat(`Turntable room ready! ${turntableRoomLink}`);
+
     ttbot.on('speak', (data) => {
         // NOTE: these should be consistent between id and Id
         const {name, text, userid} = data;
@@ -38,7 +42,6 @@ export async function setupTurntableBot(
             globalOpts.mirror = true;
         } else if (text === '.nomirror') {
             globalOpts.mirror = false;
-
         } else {
             mcbot.chat(`[TT][${name}] ${text}`);
         }
