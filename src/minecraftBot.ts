@@ -88,6 +88,10 @@ export async function setupMinecraftBot(
                 globalOpts.mirror = true;
             } else if (message === '.nomirror') {
                 globalOpts.mirror = false;
+            } else if (message.startsWith('.wiki ')) {
+                const query = message.slice(6).trim();
+                const queryString = encodeURIComponent(query);
+                mcbot.chat(`https://minecraft.fandom.com/wiki/Special:Search?search=${queryString}`);
             } else if (message === '.turntable_room_link') {
                 mcbot.chat(globalOpts.turntableRoomLink ?? "[ERR] Link not set.");
             } else if (message.startsWith('.add ')) {
