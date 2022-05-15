@@ -2,6 +2,7 @@
   "main": "src/index.ts",
   "dependencies": {
     "@types/node": "^17.0.24",
+    "@types/ws": "^8.5.3",
     "@xboxreplay/xboxlive-auth": "^4.0.0",
     "minecraft-protocol": "^1.32.1",
     "mineflayer": "^4.2.0",

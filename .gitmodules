@@ -1,3 +1,6 @@
 [submodule "src/turntable-api"]
 	path = src/turntable-api
 	url =  ../turntable-api
+[submodule "src/Akroma"]
+	path = src/Akroma
+	url = git@github.com:MrAwesome/Akroma.git

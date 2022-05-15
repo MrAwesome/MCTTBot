@@ -1,11 +1,13 @@
 import {BotOptions} from 'mineflayer';
 import {pathfinder, Movements, goals} from 'mineflayer-pathfinder';
-import mineflayer from 'mineflayer';
+import mineflayer, {Instrument} from 'mineflayer';
+import {Block} from 'prismarine-block'
 import MinecraftData from 'minecraft-data';
 import type Turntable from './turntable-api';
 import {GlobalOpts} from './types';
 
 import {promisify} from 'util';
+import {getQuotesJSON} from './akromaLib';
 const muhSetTimeout = promisify(setTimeout);
 
 const CHAT_DELAY_MS = 100;
@@ -68,6 +70,8 @@ export async function setupMinecraftBot(
 
         // @ts-ignore
         const defaultMove = new Movements(mcbot, mcData);
+
+        mcbot.on('noteHeard', async (block, instrument, pitch) => handleNote(mcbot, block, instrument, pitch));
 
         mcbot.on('chat', async (username, message) => {
             if (username === mcbot.username) return;
@@ -173,6 +177,27 @@ export async function setupMinecraftBot(
                 } else {
                     mcbot.chat(`[ERR] Invalid playlist index: ${arg1}`);
                 }
+            } else if (message.startsWith('.ticker ')) {
+                const query = message.slice(8).trim();
+                const tickers = query.split(" ");
+                try {
+                    getQuotesJSON(tickers).then(async (resp) => {
+                        if ("error" in resp) {
+                            mcbot.chat(`[ERR]: ${resp['error']}`);
+                        } else {
+                            for (const pair of Object.entries(resp)) {
+                                const [ticker, payload] = pair;
+                                const {assetType, assetMainType, mark} = payload as Record<string, any>;
+                                mcbot.chat(`${ticker}: ${mark} - (${assetMainType}/${assetType})`);
+                                await muhSetTimeout(CHAT_DELAY_MS);
+                            }
+                        }
+                    }).catch((e) => {
+                        mcbot.chat(`[ERR]: ${e}`)
+                    });
+                } catch (e) {
+                    mcbot.chat(`[ERR]: ${e}`)
+                }
             } else if (message === '.clear') {
                 await ttbot.playlistDelete(currentPlaylist);
                 await ttbot.playlistCreate(currentPlaylist);
@@ -189,6 +214,17 @@ export async function setupMinecraftBot(
     console.log("Minecraft bot loaded...");
 }
 
-  //search(query: string) {
-    //return this.conn.sendMessage({ api: 'file.search', query })
-  //}
+//search(query: string) {
+//return this.conn.sendMessage({ api: 'file.search', query })
+//}
+async function priceAlerts(
+    mcbot: mineflayer.Bot,
+) {
+
+}
+
+async function handleNote(mcbot: mineflayer.Bot, _block: Block, instrument: Instrument, pitch: number) {
+    if (instrument.id === 0 && pitch === 15) {
+        mcbot.chat("!!! Skeleton farm overflow detected! Time to clear out the chests. !!!");
+    }
+}

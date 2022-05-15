@@ -30,7 +30,7 @@ export async function setupTurntableBot(
 
     const turntableRoomLink = `https://turntable.fm/${ttbot.roomId}`;
     globalOpts.turntableRoomLink = turntableRoomLink;
-    mcbot.chat(`Turntable room ready! ${turntableRoomLink}`);
+    //mcbot.chat(`Turntable room ready! ${turntableRoomLink}`);
 
     ttbot.on('speak', (data) => {
         // NOTE: these should be consistent between id and Id
