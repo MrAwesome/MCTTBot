@@ -15,7 +15,7 @@ function sleep(ms) {
         "Gleesus",
         ".cache/",
         {
-            // For some reason, this needs to be false. 
+            // For some reason, this needs to be false.
             authTitle: false as any,
         }
     );

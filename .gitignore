@@ -108,3 +108,6 @@ dist
 ###########################
 .ttconfig
 .cache/
+**/tda_token.json
+tda_token.json
+tmp/*
