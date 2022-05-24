@@ -1,5 +1,10 @@
 import {z} from 'zod';
 
+const allowedTickers = z.union([
+    z.literal('RIOT'),
+    z.literal('SQ'),
+]);
+
 const timestampSchema = z.number().int();
 export const equityTypeSchema = z.union([
     z.literal('EQUITY'),
@@ -8,11 +13,6 @@ export const equityTypeSchema = z.union([
 ]);
 
 export const actionSchema = z.union([z.literal('BUY'), z.literal('SELL')]);
-type ZStringLiteralUnion = z.ZodUnion<[z.ZodLiteral<string>, ...z.ZodLiteral<string>[]]>;
-
-export function getLiteralsFromSchema(union: ZStringLiteralUnion): string[] {
-    return actionSchema._def.options.map((x) => x._def.value);
-}
 
 export const validTickerSchema = z.string().min(1).regex(/^[a-zA-Z\/]+$/);
 

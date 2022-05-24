@@ -6,12 +6,17 @@ import MinecraftData from 'minecraft-data';
 import type Turntable from './turntable-api';
 import {GlobalOpts} from './types';
 
+import { Vec3 } from 'vec3'
 import {promisify} from 'util';
 import {getQuotes, placeOrder} from './akromaLib';
+import type {} from './akromaSchemas';
 
 const muhSetTimeout = promisify(setTimeout);
-
 const CHAT_DELAY_MS = 100;
+
+const SIGN_UPDATE_MS = 30000;
+let signInterval: null | ReturnType<typeof setInterval> = null;
+let cachedSignText = "\nLoading...";
 
 export async function genMinecraftBot() {
     const options: BotOptions = {
@@ -200,6 +205,39 @@ export async function setupMinecraftBot(
                             }
                         }
                     }).catch(console.error);
+//                } else if (message === '.book') {
+//                    console.log(mcbot.inventory.items());
+//                    const book = mcbot.inventory.items().find((i) => i.name === 'writable_book');
+//                    if (book) {
+//                        console.log({book});
+//                        mcbot.writeBook(book.slot, ["FUFDOSIJFDSOIJ"]).then(async () => {
+//                            //await mcbot.toss(book.type, null, null);
+//                            await mcbot.equip(book, 'hand');
+//                            const lecternBlock = mcbot.blockAt(new Vec3(-88, 9, -141), true);
+//                            if (lecternBlock && lecternBlock.name === 'lectern') {
+//                                console.log("LKDJFLSKJDFLKJLDKSJF!!!!!!");
+//                                const lectEntity = lecternBlock.blockEntity;
+//                                if (lectEntity) {
+//                                    const ent = await mcbot.activateEntity(lectEntity as any);
+//                                    console.log({ent});
+//                                }
+//                            }
+//                        });
+//                    }
+                } else if (message === '.sign') {
+                    if (signInterval !== null) {
+                        clearInterval(signInterval);
+                        signInterval = null;
+                    }
+                    updateSignCache();
+                    updateSign(mcbot);
+                    signInterval = setInterval(() => {
+                        updateSignCache();
+                        updateSign(mcbot);
+                    }, SIGN_UPDATE_MS);
+
+                } else if (message === '.debug') {
+                    console.log({signInterval, cachedSignText});
                 } else if (message.startsWith('.order ')) {
                     const query = message.slice(7).trim();
                     const cmd = query.split(" ");
@@ -251,6 +289,47 @@ async function handleNote(mcbot: mineflayer.Bot, _block: Block, instrument: Inst
     } else if (instrument.id === 6 && pitch === 15) {
         buy++;
         console.log("Would BUY here. Buys so far: ", buy);
+    }
+
+}
+
+async function updateSignCache() {
+    const resp = await getQuotes(['QQQ', 'MARA', 'BITO', 'SQ']);
+        if ("error" in resp) {
+            console.log("Error fetching quotes!", resp['error']);
+        } else {
+            const msgs: string[] = [];
+            const payload = resp['success'];
+            for (const pair of Object.entries(payload)) {
+                const [ticker, payload] = pair;
+                const {mark} = payload as Record<string, any>;
+                const tick = `${ticker}: ${mark}`.slice(0, 15);
+                msgs.push(tick);
+            }
+            cachedSignText = msgs.join('\n');
+        }
+
+}
+
+async function updateSign(mcbot: mineflayer.Bot) {
+    const oldSignBlock = mcbot.blockAt(new Vec3(-88, 10, -141), true);
+
+    if (oldSignBlock && oldSignBlock.name !== 'air' && mcbot.canDigBlock(oldSignBlock)) {
+        await mcbot.dig(oldSignBlock);
+        await muhSetTimeout(200);
+    }
+
+    const signPostBlock = mcbot.blockAt(new Vec3(-88, 9, -141), true);
+    let newSignBlock: Block | null = null;
+    const signInInv = mcbot.inventory.items().find((item) => item.name === "oak_sign");
+    if (signInInv && signPostBlock) {
+        mcbot.equip(signInInv, 'hand').then(async () => {
+        await mcbot.placeBlock(signPostBlock, new Vec3(0, 1, 0));
+            newSignBlock = mcbot.blockAt(new Vec3(-88, 10, -141), true);
+            if (newSignBlock !== null) {
+                mcbot.updateSign(newSignBlock, cachedSignText);
+            }
+        }).catch(console.error);
     }
 
 }

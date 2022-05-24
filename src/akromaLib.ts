@@ -108,3 +108,7 @@ export async function readConfig(): Promise<AkromaConfig> {
         return ret;
     }).then((buf) => akromaConfigSchema.parse(JSON.parse(buf.toString())));
 }
+
+// TODO: if it's dinged more than ten times in a minute, just throw
+// TODO: don't day trade
+// TODO: don't trade more than once every 10 minutes
