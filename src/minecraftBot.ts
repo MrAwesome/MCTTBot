@@ -14,9 +14,13 @@ import type {} from './akromaSchemas';
 const muhSetTimeout = promisify(setTimeout);
 const CHAT_DELAY_MS = 100;
 
-const SIGN_UPDATE_MS = 30000;
+const SIGN_UPDATE_MS = 10000;
 let signInterval: null | ReturnType<typeof setInterval> = null;
 let cachedSignText = "\nLoading...";
+
+let doNotTrade = true;
+
+// TODO: red or green banner based on how sheep based trading strategy is doing
 
 export async function genMinecraftBot() {
     const options: BotOptions = {
@@ -224,6 +228,10 @@ export async function setupMinecraftBot(
 //                            }
 //                        });
 //                    }
+                } else if (message === '.trade') {
+                    doNotTrade = false;
+                } else if (message === '.notrade') {
+                    doNotTrade = true;
                 } else if (message === '.sign') {
                     if (signInterval !== null) {
                         clearInterval(signInterval);
@@ -268,33 +276,50 @@ export async function setupMinecraftBot(
     }
 }
 
-let buy = 0;
-let sell = 0;
+let stockIndex = 0;
+const stocks = ['RIOT', 'CAN', 'TQQQ'];
+let orderTypesForEquitiesIndex = 0;
+const orderTypesForEquities = ['BUY_OR_SELL_INCLUDING_SHORT', 'BUY_CHEAP_PUT_OR_CALL_NEAREST', 'BUY_CHEAP_PUT_OR_CALL_FURTHEST'] as const;
+// buy the best option whose price is the same as the cheapest option
 
 async function handleNote(mcbot: mineflayer.Bot, _block: Block, instrument: Instrument, pitch: number) {
     if (instrument.id === 0 && pitch === 15) {
         mcbot.chat("!!! Skeleton farm overflow detected! Time to clear out the chests. !!!");
     } else if (instrument.id === 6 && pitch === 3) {
-        sell++;
-        console.log("Would SELL here. Sells so far: ", sell);
-
-        //        placeOrder("SELL", "HIVE").then(async (resp) => {
-        //            if ("error" in resp) {
-        //                mcbot.chat(`[ERR]: ${resp['error']}`);
-        //            } else {
-        //                const payload = resp['success'];
-        //                mcbot.chat(payload);
-        //            }
-        //        }).catch(console.error);
+        if (doNotTrade) {
+            return;
+        }
+        placeOrder("EQUITY", "SELL", stocks[stockIndex]).then(async (resp) => {
+            if ("error" in resp) {
+                mcbot.chat(`[ERR]: ${resp['error']}`);
+            } else {
+                const payload = resp['success'];
+                mcbot.chat(payload);
+            }
+        }).catch(console.error);
     } else if (instrument.id === 6 && pitch === 15) {
-        buy++;
-        console.log("Would BUY here. Buys so far: ", buy);
+        if (doNotTrade) {
+            return;
+        }
+        placeOrder("EQUITY", "BUY", stocks[stockIndex]).then(async (resp) => {
+            if ("error" in resp) {
+                mcbot.chat(`[ERR]: ${resp['error']}`);
+            } else {
+                const payload = resp['success'];
+                mcbot.chat(payload);
+            }
+        }).catch(console.error);
+    } else if (instrument.id === 9 && pitch === 3) {
+        stockIndex = (stockIndex + 1) % stocks.length
+        console.log('Taking the index up: ', stockIndex);
+    } else if (instrument.id === 9 && pitch === 15) {
+        orderTypesForEquitiesIndex = (orderTypesForEquitiesIndex + 1) % orderTypesForEquities.length;
     }
 
 }
 
 async function updateSignCache() {
-    const resp = await getQuotes(['QQQ', 'MARA', 'BITO', 'SQ']);
+    const resp = await getQuotes(['RIOT', 'CAN', 'TQQQ']);
         if ("error" in resp) {
             console.log("Error fetching quotes!", resp['error']);
         } else {

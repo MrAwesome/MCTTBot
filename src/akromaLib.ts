@@ -12,7 +12,7 @@ const writeFileAsync = promisify(writeFile);
 
 const ALLOWED_ORDER_ACTIONS = ['BUY', 'SELL'] as const;
 type AllowedOrderAction = typeof ALLOWED_ORDER_ACTIONS[number];
-const ALLOWED_EQUITIES = ['HIVE'] as const;
+const ALLOWED_EQUITIES = ['RIOT', 'CAN', 'TQQQ'] as const;
 type AllowedEquity = typeof ALLOWED_EQUITIES[number];
 
 const CONFIG_FILE_LOCATION = 'tmp/akromaConfig.json';
@@ -28,7 +28,6 @@ export async function getQuotes(maybeTickers: String[]): Promise<any> {
     const spacesTickers = maybeTickers.map((s) => `"${s}"`).join(" ");
 
     const res = await exec(`python3 ${__dirname}/Akroma/tda_get_quotes.py ${spacesTickers}`);
-
     return JSON.parse(res.stdout);
 }
 
@@ -53,26 +52,56 @@ export async function placeOrder(
     // TODO: lookup crypto vs equity etc
 
     let updateTimeKey: keyof TickerLastTimeInfo;
+    let oppositeTimeKey: keyof TickerLastTimeInfo;
     switch (action) {
         case "BUY": {
             updateTimeKey = "lastBuyMs";
+            oppositeTimeKey = "lastSellMs";
+            break;
         };
         case "SELL": {
             updateTimeKey = "lastSellMs";
+            oppositeTimeKey = "lastBuyMs";
+            break;
         }
     }
-    //const equityType = "EQUITY";
+
     if (config.transactions[equityType][knownTicker] === undefined) {
+        // We haven't traded this equity before
         config.transactions[equityType][knownTicker] = {
-            timeInfo: {lastBuyMs: Date.now(), lastSellMs: Date.now()},
+            timeInfo: {lastBuyMs: 0, lastSellMs: 0},
             ticker: knownTicker,
             equityType,
         }
     } else {
-        config.transactions[equityType][knownTicker]!.timeInfo[updateTimeKey] = Date.now();
+        // We have traded this equity before, check that we can trade it
+        const now = Date.now();
+        const nowDateObj = new Date(now);
+        const todaysDateString = nowDateObj.toLocaleDateString();
+
+        const lastOppositeActionTimeMs = config.transactions[equityType][knownTicker]!.timeInfo[oppositeTimeKey];
+        const lastOppositeActionDateObj = new Date(lastOppositeActionTimeMs);
+        const lastOppositeActionDateString = lastOppositeActionDateObj.toLocaleDateString();
+
+        const isDayTrade = todaysDateString === lastOppositeActionDateString;
+        if (isDayTrade) {
+            console.log(`Day trade: ${action} ${knownTicker}`);
+            return {"error": 'Day trade attempted!'};
+        }
+
+        const lastActionTimeMs = config.transactions[equityType][knownTicker]!.timeInfo[updateTimeKey];
+        if ((now - lastActionTimeMs) < 600000) {
+            return {"error": 'Need to wait more than 10 minutes before making the same trade.'};
+        }
     }
 
+    config.transactions[equityType][knownTicker]!.timeInfo[updateTimeKey] = Date.now();
+
     const ret = await placeOrderINTERNAL(action, knownTicker);
+
+    console.log(`Placed order: ${action} ${knownTicker}`);
+    await writeConfig(config);
+
     const output = ret.stdout;
 
     if (output.match(/[\[\{]/)) {
@@ -107,6 +136,10 @@ export async function readConfig(): Promise<AkromaConfig> {
         release();
         return ret;
     }).then((buf) => akromaConfigSchema.parse(JSON.parse(buf.toString())));
+}
+
+function sameDay(d1: Date, d2: Date): boolean {
+    return d1.toLocaleDateString() === d2.toLocaleDateString();
 }
 
 // TODO: if it's dinged more than ten times in a minute, just throw

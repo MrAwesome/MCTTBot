@@ -1,7 +1,7 @@
-import {writeConfig, readConfig} from "./akromaLib";
+import {placeOrder} from "./akromaLib";
 
 (async () => {
-    const config = await readConfig();
-    config.transactions['FOREX'] = {}
-    await writeConfig(config);
+    await placeOrder("EQUITY", "SELL", "RIOT");
+    await placeOrder("EQUITY", "SELL", "CAN");
+    await placeOrder("EQUITY", "SELL", "TQQQ");
 })()
