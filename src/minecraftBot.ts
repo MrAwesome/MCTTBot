@@ -283,9 +283,7 @@ const orderTypesForEquities = ['BUY_OR_SELL_INCLUDING_SHORT', 'BUY_CHEAP_PUT_OR_
 // buy the best option whose price is the same as the cheapest option
 
 async function handleNote(mcbot: mineflayer.Bot, _block: Block, instrument: Instrument, pitch: number) {
-    if (instrument.id === 0 && pitch === 15) {
-        mcbot.chat("!!! Skeleton farm overflow detected! Time to clear out the chests. !!!");
-    } else if (instrument.id === 6 && pitch === 3) {
+    if (instrument.id === 6 && pitch === 3) {
         if (doNotTrade) {
             return;
         }
